@@ -1,0 +1,49 @@
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.datasets import load_iris
+from sklearn.preprocessing import StandardScaler
+
+# Load the Iris dataset
+iris = load_iris()
+X = iris.data
+y = iris.target
+
+# DataFrame for EDA
+df = pd.DataFrame(X, columns=iris.feature_names)
+df['species'] = y
+
+# EDA: Pairplot
+sns.pairplot(df, hue='species', diag_kind='kde')
+plt.show()
+
+# Standardize the features
+scaler = StandardScaler()
+X_std = scaler.fit_transform(X)
+
+# Compute covariance matrix
+cov_matrix = np.cov(X_std.T)
+
+# Calculate eigenvalues and eigenvectors
+eigenvalues, eigenvectors = np.linalg.eig(cov_matrix)
+
+# Sort eigenvalues and eigenvectors
+sorted_indices = np.argsort(eigenvalues)[::-1]
+eigenvalues = eigenvalues[sorted_indices]
+eigenvectors = eigenvectors[:, sorted_indices]
+
+# Project data onto the first two principal components
+X_pca = X_std @ eigenvectors[:, :2]
+
+# Create a DataFrame for visualization
+pca_df = pd.DataFrame(X_pca, columns=['PC1', 'PC2'])
+pca_df['species'] = y
+
+# Scatter plot of PCA-transformed data
+plt.figure(figsize=(8, 6))
+sns.scatterplot(data=pca_df, x='PC1', y='PC2', hue='species', palette='bright', s=70)
+plt.title('PCA of Iris Dataset')
+plt.xlabel('First Principal Component')
+plt.ylabel('Second Principal Component')
+plt.show()
